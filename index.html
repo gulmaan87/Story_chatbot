@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Storytelling Chatbot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Hi-Tech Metallic Dark Theme */
+            --primary-color: #00bcd4;  /* Cyan/Teal */
+            --secondary-color: #212121; /* Dark Gray */
+            --text-color: #e0e0e0;    /* Light Gray */
+            --bg-color: #121212;     /* Near Black */
+            --container-bg: rgba(33, 33, 33, 0.8); /* Slightly Lighter Dark Gray with Opacity */
+            --border-color: #424242;  /* Medium Gray */
+            --shadow-color: rgba(0, 188, 212, 0.1); /* Cyan Glow */
+            --button-hover: #00acc1;  /* Darker Cyan */
+            --spinner-color: var(--primary-color);
+            --footer-bg: #1e1e1e;
+            --link-color: var(--primary-color);
+            --textarea-hover-border: #555;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            text-align: center;
+            /* Neon light animation background */
+            background: linear-gradient(135deg, #0a8ab8 0%, #121212 50%, #4f0ab8 100%);
+            background-size: 400% 400%; /* Increased size for smoother animation */
+            animation: neonAnimation 8s ease infinite; /* Slower, smoother animation */
+            color: var(--text-color);
+            margin: 0;
+            padding: 30px 20px;
+            line-height: 1.6;
+            min-height: 100vh; /* Ensure animation covers full height */
+            box-sizing: border-box; /* Include padding in height calculation */
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes neonAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 30px;
+        }
+        #chat-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 30px;
+            background: var(--container-bg);
+            border-radius: 12px;
+            box-shadow: 0px 6px 15px var(--shadow-color);
+            border: 1px solid var(--border-color);
+            text-align: left;
+            flex-grow: 1; /* Allow container to grow */
+            display: flex;
+            flex-direction: column;
+        }
+        textarea {
+            width: calc(100% - 24px);
+            height: 100px;
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background-color: var(--secondary-color); /* Darker background for textarea */
+            color: var(--text-color); /* Light text for textarea */
+        }
+        textarea::placeholder { /* Style placeholder text */
+            color: #757575; /* Lighter gray for placeholder */
+        }
+        textarea:hover {
+            border-color: var(--textarea-hover-border);
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--shadow-color); /* Use glow color for focus */
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 17px;
+            font-weight: 500;
+            color: white;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease, opacity 0.3s ease;
+        }
+        button:hover:not(:disabled) { /* Only apply hover when not disabled */
+            background: var(--button-hover);
+            transform: translateY(-1px);
+        }
+         button:active:not(:disabled) { /* Only apply active when not disabled */
+            transform: translateY(0px);
+        }
+         button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        #response {
+            margin-top: 25px;
+            padding: 20px;
+            background: var(--secondary-color); /* Darker background for response */
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-align: left;
+            white-space: pre-wrap;
+            font-size: 15px;
+            min-height: 50px;
+            line-height: 1.7;
+            color: var(--text-color); /* Ensure response text uses the theme color */
+            flex-grow: 1; /* Allow response area to grow */
+            overflow-y: auto; /* Add scroll if content overflows */
+            display: flex; /* Use flexbox for spinner centering */
+            align-items: center; /* Center vertically */
+            justify-content: center; /* Center horizontally */
+        }
+        #response strong {
+           color: var(--primary-color); /* Use primary color for emphasis */
+           font-weight: 500;
+        }
+         #response em {
+            color: #bdbdbd; /* Lighter gray for emphasis text */
+            font-style: italic;
+        }
+
+        /* Loading Spinner Styles */
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3); /* Light border */
+            border-radius: 50%;
+            border-top: 4px solid var(--spinner-color); /* Primary color for moving part */
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto; /* Center spinner */
+            display: none; /* Hidden by default */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        #response.loaded {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        /* Footer Styles */
+        .footer-text-block {
+            text-align: center; /* Center text elements */
+            margin-bottom: 10px; /* Space below text, above icon */
+        }
+
+        .footer-text-block p {
+            margin: 0; /* Remove default margins */
+        }
+
+        .developed-by {
+            font-weight: 500; /* Make "Developed by" bolder */
+            margin-bottom: 5px; /* Space below "Developed by" */
+        }
+
+        .developer-names { /* Container for all developer blocks */
+            display: flex; /* Arrange developer blocks horizontally */
+            justify-content: center; /* Center the blocks */
+            flex-wrap: wrap; /* Allow wrapping */
+            font-size: 0.9em;
+            color: #bdbdbd; /* Lighter gray */
+        }
+
+        .developer-item { /* Style for each developer's block */
+            display: flex;
+            flex-direction: column; /* Stack name and icon vertically */
+            align-items: center; /* Center items horizontally */
+            margin: 0 15px; /* Add space between developer blocks */
+            min-width: 150px; /* Give some minimum width */
+            padding: 10px; /* Add some padding */
+            border-radius: 6px; /* Add rounded corners */
+            transition: background-color 0.3s ease; /* Add transition for hover */
+        }
+
+        .developer-item:hover {
+            background-color: rgba(255, 255, 255, 0.05); /* Subtle background on hover */
+        }
+
+        .developer-item span { /* Style for the name */
+            margin-bottom: 5px; /* Space below name, above icon */
+        }
+
+        footer {
+            background: linear-gradient(to bottom, rgba(30, 30, 30, 0.4), rgba(20, 20, 20, 0.4)); /* Added translucent gradient */
+            color: var(--text-color);
+            padding: 15px 0;
+            margin-top: auto; /* Push footer to bottom */
+            display: flex;
+            flex-direction: column; /* Stack elements vertically */
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0; /* Prevent footer from shrinking */
+            border-top: 1px solid var(--primary-color); /* Use primary color for top border */
+        }
+        footer a {
+            color: var(--link-color);
+            text-decoration: none;
+            transition: color 0.3s ease, transform 0.2s ease; /* Added transform transition */
+            display: inline-block; /* Needed for transform */
+        }
+        footer a:hover {
+            color: var(--button-hover); /* Use button hover color */
+            transform: scale(1.1); /* Slightly enlarge icon on hover */
+        }
+        footer svg {
+             width: 24px; /* Adjusted size */
+             height: 24px;
+             fill: currentColor; /* Use text color for icon */
+             vertical-align: middle; /* Align icon better with text */
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 15px; /* Reduce body padding */
+            }
+            #chat-container {
+                max-width: 95%; /* Allow container to take more width */
+                padding: 20px; /* Reduce container padding */
+                margin: 20px auto;
+            }
+            h1 {
+                font-size: 1.8em; /* Slightly smaller heading */
+            }
+            .developer-names {
+                flex-direction: column; /* Stack developers vertically */
+                align-items: center; /* Center vertically stacked items */
+            }
+            .developer-item {
+                margin: 10px 0; /* Adjust margin for vertical stacking */
+                min-width: auto; /* Remove min-width */
+            }
+            footer {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 15px 10px; /* Further reduce body padding */
+            }
+            #chat-container {
+                padding: 15px; /* Further reduce container padding */
+            }
+            h1 {
+                font-size: 1.5em; /* Even smaller heading */
+                margin-bottom: 20px;
+            }
+            textarea {
+                font-size: 15px; /* Slightly smaller text area font */
+                height: 80px;
+            }
+            button {
+                font-size: 16px; /* Slightly smaller button font */
+                padding: 10px 15px;
+            }
+            #response {
+                font-size: 14px; /* Smaller response font */
+                padding: 15px;
+            }
+            .developer-item span {
+                font-size: 0.85em; /* Smaller name font size */
+            }
+             footer svg {
+                 width: 20px;
+                 height: 20px;
+             }
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>🌙 AI Storytelling Chatbot</h1>
+    <div id="chat-container">
+        <label for="user-input" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-color);">Enter your story prompt:</label>
+        <textarea id="user-input" placeholder="e.g., Generate a story about a neon-lit cyberpunk city..."></textarea>
+        <button id="generate-button" onclick="getStory()">Generate Story</button>
+        <div id="response">
+             <div class="spinner" id="loading-spinner"></div> <!-- Spinner Element -->
+             <div id="response-content"></div> <!-- Content wrapper -->
+        </div>
+    </div>
+     <footer >
+         <div class="footer-text-block">
+             <p class="developed-by">Developed by</p>
+             <div class="developer-names">
+                 <div class="developer-item">
+                     <span>Mohd Gulman Meer (12313335)</span>
+                     <a href="https://github.com/gulmaan87" target="_blank" aria-label="Mohd Gulman Meer GitHub Profile">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" role="img">
+                              <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                          </svg>
+                      </a>
+                 </div>
+                <div class="developer-item">
+                     <span>Abhimanyu Baloria (12308835)</span>
+                     <!-- GitHub URL -->
+                     <a href="https://github.com/abhimanyubaloria" target="_blank" aria-label="Abhimanyu Baloria GitHub Profile">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" role="img">
+                              <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                          </svg>
+                      </a>
+                 </div>
+                <div class="developer-item">
+                     <span>Akash Binu (12307828)</span>
+                     <!--  GitHub URL -->
+                     <a href="https://github.com/Akashbinugithub" target="_blank" aria-label="Akash Binu GitHub Profile">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" role="img">
+                              <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                          </svg>
+                      </a>
+                 </div>
+             </div>
+         </div>
+     </footer>
+
+    <script>
+        async function getStory() {
+            const userInputElement = document.getElementById("user-input");
+            const userInput = userInputElement.value.trim();
+            const responseDiv = document.getElementById("response");
+            const responseContent = document.getElementById("response-content");
+            const spinner = document.getElementById("loading-spinner");
+            const generateButton = document.getElementById("generate-button");
+
+            responseDiv.classList.remove('loaded');
+            responseContent.innerHTML = ""; // Clear previous content
+            spinner.style.display = 'none'; // Hide spinner initially
+
+            if (!userInput) {
+                responseContent.innerHTML = "<strong>Please enter a story request!</strong>";
+                responseDiv.classList.add('loaded');
+                return;
+            }
+
+            // Disable button and show spinner
+            generateButton.disabled = true;
+            spinner.style.display = 'block';
+            responseContent.innerHTML = ""; // Clear any previous message like "Please enter..."
+
+            // Clear the input field
+            userInputElement.value = "";
+
+            try {
+                const response = await fetch("http://localhost:3000/story", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: userInput })
+                });
+
+                const data = await response.json();
+                 // Check if response indicates an error from the backend
+                 if (!response.ok || data.error) {
+                     throw new Error(data.error || `HTTP error! status: ${response.status}`);
+                 }
+                 responseContent.innerHTML = `<strong style="color: var(--primary-color);">Story:</strong><br>${data.response}`;
+            } catch (error) {
+                 responseContent.innerHTML = "<strong style='color: #f44336;'>Error generating story. Please check the server and try again.</strong>";
+                console.error("Error:", error);
+            } finally {
+                 spinner.style.display = 'none'; // Hide spinner
+                 generateButton.disabled = false; // Re-enable button
+                 responseDiv.classList.add('loaded');
+            }
+        }
+    </script>
+
+</body>
+</html>
